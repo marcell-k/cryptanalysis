@@ -1,44 +1,52 @@
-use std::{collections::HashMap, fs, io};
+use crate::util::{
+    ALPHABET, BIGRAMS, TRIGRAMS, chi_square_scoring, count_ngrams, load_or_build_common,
+};
+mod util;
 
-pub const ALPHABET: [char; 26] = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-    'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-];
-const COMMON_FILE: &str = "common.txt";
-pub(crate) const COMMON_ENGLISH: &str = "I WOKE UP EARLY TODAY SHE LIKES COFFEE IN THE MORNING WE WENT TO THE STORE YESTERDAY HE IS WATCHING TV RIGHT NOW THEY LIVE IN A SMALL APARTMENT CAN YOU HELP ME WITH THIS I DONT UNDERSTAND THE QUESTION SHE WORKS AT A HOSPITAL WERE PLANNING A TRIP NEXT MONTH ILL CALL YOU LATER TONIGHT JACK FIXED THE BROKEN ZIPPER QUICKLY THE LAZY FOX JUMPED OVER SIX BOXES MY UNCLE OWNS A DOZEN ANTIQUE CLOCKS WE WATCHED FIREWORKS EXPLODE AT MIDNIGHT ZEBRAS GRAZED NEXT TO THE OLD JUNKYARD";
+pub fn decode(cipher: String) -> anyhow::Result<()> {
+    let common = load_or_build_common()?;
 
-pub fn count_chars(cipher: &str) -> HashMap<char, u16> {
-    let mut map = HashMap::new();
-    for c in cipher.replace(' ', "").chars() {
-        map.entry(c)
-            .and_modify(|counter| *counter += 1)
-            .or_insert(1);
+    let mut out: Vec<String> = Vec::with_capacity(26);
+    let mut score: Vec<f64> = Vec::with_capacity(26);
+
+    for i in 0..26 {
+        let mut s = String::new();
+        for ch in cipher.chars() {
+            if !ch.is_alphabetic() {
+                s.push(ch);
+                continue;
+            } else {
+                let mut index = ALPHABET.iter().position(|c| c == &ch).unwrap();
+                index = (index + i) % 26;
+                let new_ch = ALPHABET[index];
+                s.push(new_ch);
+            }
+        }
+        out.push(s.clone());
+
+        let chi = chi_square_scoring(&s, &common);
+        let bi = count_ngrams(&s, &BIGRAMS);
+        let tri = count_ngrams(&s, &TRIGRAMS);
+        // 10. and 15. arbitrary magic numbers, need to optimize those
+        let value = chi - (bi * 10.) - (tri * 15.);
+        score.push(value);
     }
-    map
+    let mut pairs: Vec<(String, f64)> = out.into_iter().zip(score).collect();
+    pairs.sort_by(|a, b| a.1.total_cmp(&b.1));
+    for (s, v) in pairs.iter().take(5) {
+        println!("{} - {:.2}", s, v);
+    }
+
+    Ok(())
 }
 
-pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
-    if fs::exists(COMMON_FILE)? {
-        let data = fs::read_to_string(COMMON_FILE)?;
-        let common: HashMap<char, u16> = serde_json::from_str(&data)?;
-        Ok(common)
-    } else {
-        let common = count_chars(COMMON_ENGLISH);
-        let serialized = serde_json::to_string(&common)?;
-        fs::write(COMMON_FILE, serialized)?;
-        Ok(common)
-    }
-}
+#[cfg(test)]
+mod test {
+    use crate::decode;
 
-pub fn chi_square_scoring(res: &str, common: &HashMap<char, u16>) -> f64 {
-    let map = count_chars(res);
-    let res_total: f64 = map.values().sum::<u16>() as f64;
-    let common_total: f64 = common.values().sum::<u16>() as f64;
-    let mut score = 0.0;
-    for ch in ALPHABET {
-        let observed = *map.get(&ch).unwrap_or(&0) as f64 / res_total;
-        let expected = *common.get(&ch).unwrap_or(&1) as f64 / common_total;
-        score += (observed - expected).powi(2) / expected;
+    #[test]
+    fn test_not_panic() {
+        let cipher = String::from("MEET AT 5PM SHARP!");
+        let _ = decode(cipher);
     }
-    score
 }
