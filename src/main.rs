@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
     let mut out: Vec<String> = Vec::with_capacity(26);
     let mut score: Vec<f64> = Vec::with_capacity(26);
 
-    for i in 0..27 {
+    for i in 0..26 {
         let mut s = String::new();
         for ch in cipher.chars() {
             if ch == ' ' {
@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
         score.push(chi_square_scoring(&s, &common));
     }
     let mut pairs: Vec<(String, f64)> = out.into_iter().zip(score).collect();
-    pairs.sort_by(|a, b| b.1.total_cmp(&a.1));
+    pairs.sort_by(|a, b| a.1.total_cmp(&b.1));
     for (s, v) in pairs.iter().take(5) {
         println!("{} - {:.2}", s, v);
     }

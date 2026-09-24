@@ -32,11 +32,13 @@ pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
 
 pub fn chi_square_scoring(res: &str, common: &HashMap<char, u16>) -> f64 {
     let map = count_chars(res);
-    let mut res = 0.0;
+    let res_total: f64 = map.values().sum::<u16>() as f64;
+    let common_total: f64 = common.values().sum::<u16>() as f64;
+    let mut score = 0.0;
     for ch in ALPHABET {
-        let value = (*map.get(&ch).unwrap() as f64 - *common.get(&ch).unwrap() as f64)
-            / *common.get(&ch).unwrap() as f64;
-        res += value.powi(2);
+        let observed = *map.get(&ch).unwrap_or(&0) as f64 / res_total;
+        let expected = *common.get(&ch).unwrap_or(&1) as f64 / common_total;
+        score += (observed - expected).powi(2) / expected;
     }
-    res
+    score
 }
