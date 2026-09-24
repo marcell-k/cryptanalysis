@@ -7,12 +7,13 @@
 
 use freq_analysis::{
     affine_cipher_encryption, caesar_brute_force_decryption, index_of_coincidence,
-    is_bijective_mod26,
+    is_bijective_mod26, vigenere_cipher_encryption, viginere_decrpytion,
 };
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     let _cipher = String::from("WKH TXLFN EURZQ IRA MXPSV RYHU WKH ODCB GRJ");
     let cipher = String::from("A rose by any other name would smell as sweet.").to_uppercase();
+    let key = String::from("A rose by any other name would smell as sweett").to_uppercase();
 
     let ic = index_of_coincidence(&cipher);
     println!("Index of coincidence: {:.4}", ic);
@@ -24,5 +25,7 @@ fn main() -> anyhow::Result<()> {
             println!("a={a}")
         }
     }
-    affine_cipher_encryption(cipher)
+    // affine_cipher_encryption(cipher.clone());
+    let encoded_message = vigenere_cipher_encryption(cipher.clone(), key.clone());
+    let message = viginere_decrpytion(cipher, key);
 }

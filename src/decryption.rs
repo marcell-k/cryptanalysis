@@ -2,7 +2,7 @@ use crate::util::{
     ALPHABET, BIGRAMS, TRIGRAMS, chi_square_scoring, count_ngrams, load_or_build_common,
 };
 
-pub fn caesar_brute_force_decryption(cipher: String) -> anyhow::Result<()> {
+pub fn caesar_brute_force_decryption(cipher: String) -> anyhow::Result<String> {
     let common = load_or_build_common()?;
 
     let mut out: Vec<String> = Vec::with_capacity(26);
@@ -36,5 +36,26 @@ pub fn caesar_brute_force_decryption(cipher: String) -> anyhow::Result<()> {
         println!("{} - {:.2}", s, v);
     }
 
-    Ok(())
+    Ok(pairs[0].0.clone())
+}
+
+// for each character `(c[i] + k[i] + 26) % 26 == m[i]`
+pub fn viginere_decrpytion(cipher: String, key: String) -> anyhow::Result<String> {
+    assert_eq!(cipher.len(), key.len());
+
+    let mut out = String::with_capacity(cipher.len());
+
+    for (ch, kch) in cipher.chars().zip(key.chars()) {
+        if ALPHABET.contains(&ch) {
+            let cipher_idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
+            let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
+            let idx = (cipher_idx + key_idx + 26) % 26;
+            out.push(ALPHABET[idx]);
+        } else {
+            out.push(ch);
+        }
+    }
+    println!("Decrypted message: {}, using Viginere", out);
+
+    Ok(out)
 }
