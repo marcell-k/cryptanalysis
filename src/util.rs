@@ -11,7 +11,9 @@ pub const TRIGRAMS: [&str; 8] = ["THE", "AND", "ING", "ENT", "ION", "HER", "FOR"
 // Word shapes become especially useful when combined with frequency clues. If a common four-letter ciphertext word has the shape ABBC, and the surrounding partial plaintext suggests a verb or noun, the list of possibilities narrows quickly.
 
 const COMMON_FILE: &str = "common.txt";
+
 pub(crate) const COMMON_ENGLISH: &str = "I WOKE UP EARLY TODAY SHE LIKES COFFEE IN THE MORNING WE WENT TO THE STORE YESTERDAY HE IS WATCHING TV RIGHT NOW THEY LIVE IN A SMALL APARTMENT CAN YOU HELP ME WITH THIS I DONT UNDERSTAND THE QUESTION SHE WORKS AT A HOSPITAL WERE PLANNING A TRIP NEXT MONTH ILL CALL YOU LATER TONIGHT JACK FIXED THE BROKEN ZIPPER QUICKLY THE LAZY FOX JUMPED OVER SIX BOXES MY UNCLE OWNS A DOZEN ANTIQUE CLOCKS WE WATCHED FIREWORKS EXPLODE AT MIDNIGHT ZEBRAS GRAZED NEXT TO THE OLD JUNKYARD";
+
 pub fn count_chars(cipher: &str) -> HashMap<char, u16> {
     let mut map = HashMap::new();
     for c in cipher.replace(' ', "").chars() {
@@ -22,13 +24,17 @@ pub fn count_chars(cipher: &str) -> HashMap<char, u16> {
     map
 }
 
-// IC range 0.038 (random) to 0.067 (English). Close to 0.067 = valid English or mono-alphabetic cipher.
-pub fn index_of_coincidence(cipher: &str) -> f64 {
-    let counts = count_chars(cipher);
-    let n: u64 = counts.values().map(|&c| c as u64).sum();
-    let numerator: u64 = counts.values().map(|&c| (c as u64) * (c as u64 - 1)).sum();
-    let n = n as f64;
-    numerator as f64 / (n * (n - 1.))
+pub fn is_bijective_mod26(f: impl Fn(usize) -> usize) -> bool {
+    let mut seen = [false; 26];
+
+    for idx in 0..26 {
+        let out = f(idx) % 26;
+        if seen[out] {
+            return false;
+        }
+        seen[out] = true;
+    }
+    true
 }
 
 pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
