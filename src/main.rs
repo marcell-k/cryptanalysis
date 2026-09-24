@@ -3,9 +3,12 @@
 //! and other patterns occur in a ciphertext. It does not necessarily require the key. It does not always
 //! require knowing the exact cipher. It begins with a simpler question: **what does this ciphertext do often**?
 
-use freq_analysis::decode;
+use freq_analysis::{decode, index_of_coincidence};
 
 fn main() -> anyhow::Result<()> {
     let cipher = String::from("WKH TXLFN EURZQ IRA MXPSV RYHU WKH ODCB GRJ");
+
+    let ic = index_of_coincidence(&cipher);
+    println!("Index of coincidence: {:.4}", ic);
     decode(cipher)
 }

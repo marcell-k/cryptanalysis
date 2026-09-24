@@ -2,6 +2,7 @@ use crate::util::{
     ALPHABET, BIGRAMS, TRIGRAMS, chi_square_scoring, count_ngrams, load_or_build_common,
 };
 mod util;
+pub use util::index_of_coincidence;
 
 pub fn decode(cipher: String) -> anyhow::Result<()> {
     let common = load_or_build_common()?;

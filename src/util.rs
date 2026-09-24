@@ -22,6 +22,15 @@ pub fn count_chars(cipher: &str) -> HashMap<char, u16> {
     map
 }
 
+// IC range 0.038 (random) to 0.067 (English). Close to 0.067 = valid English or mono-alphabetic cipher.
+pub fn index_of_coincidence(cipher: &str) -> f64 {
+    let counts = count_chars(cipher);
+    let n: u64 = counts.values().map(|&c| c as u64).sum();
+    let numerator: u64 = counts.values().map(|&c| (c as u64) * (c as u64 - 1)).sum();
+    let n = n as f64;
+    numerator as f64 / (n * (n - 1.))
+}
+
 pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
     if fs::exists(COMMON_FILE)? {
         let data = fs::read_to_string(COMMON_FILE)?;
