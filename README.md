@@ -8,6 +8,7 @@ A collection of encryption and decryption algorithm implementations, following t
 * [Frequency Analysis — Cipher Register](https://cipherregister.com/learn/frequency-analysis)
 * [Index of Coincidence — Michigan Technological University](https://pages.mtu.edu/~shene/NSF-4/Tutorial/VIG/Vig-IOC.html)
 * [Affine Cipher — Arizona State University](https://math.asu.edu/sites/g/files/litvpz216/files/affine.pdf)
+* [Scytale](https://www.dcode.fr/scytale-cipher)
 
 ## Timeline & Implementation Progress
 
@@ -19,7 +20,7 @@ A collection of encryption and decryption algorithm implementations, following t
   * One of the earliest known examples of deliberately unusual writing.
   * Not primarily intended for cryptographic security.
 
-* [ ] **~500 BC — Scytale**
+* [x] **~500 BC — Scytale**
 
   * Sparta
   * Transposition cipher.
@@ -96,22 +97,5 @@ A collection of encryption and decryption algorithm implementations, following t
 
   * Public-key cryptosystem.
   * Supports encryption and decryption based on modular exponentiation and the difficulty of integer factorization.
-
-## Implementation Status
-
-| Algorithm    | Status |
-| ------------ | :----: |
-| Scytale      |   [ ]  |
-| Caesar       |   [x]  |
-| Alberti      |   [ ]  |
-| Bellaso      |   [ ]  |
-| Vigenère     |   [x]  |
-| Affine       |   [x]  |
-| One-time pad |   [ ]  |
-| Enigma       |   [ ]  |
-| DES          |   [ ]  |
-| RSA          |   [ ]  |
-
-> **Legend:** `[x]` implemented · `[ ]` planned
 
 Used llms, for README, and function naming, double checking algorithms logic.

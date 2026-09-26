@@ -87,6 +87,7 @@ pub fn affine_decrypt(cipher: String) -> anyhow::Result<String> {
     Ok(best.0.clone())
 }
 
+// TODO: for performance use Euclidean or source [link](https://cp-algorithms.com/algebra/module-inverse.html)
 fn mod_inverse(a: usize, m: usize) -> Option<usize> {
     (1..m).find(|&x| (a * x) % m == 1)
 }

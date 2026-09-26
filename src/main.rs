@@ -8,7 +8,8 @@
 
 use freq_analysis::{
     affine_decrypt, affine_encrypt, caesar_crack, caesar_encrypt, index_of_coincidence,
-    is_bijective_mod26, vigenere_crack, vigenere_decrypt, vigenere_encrypt,
+    is_bijective_mod26, scytale_decrypt, scytale_encrypt, vigenere_crack, vigenere_decrypt,
+    vigenere_encrypt,
 };
 
 fn main() {
@@ -24,6 +25,11 @@ fn main() {
     let ic = index_of_coincidence(&cipher);
     println!("Index of coincidence: {:.4}", ic);
     println!("{:<17}: {}", "Cipher", cipher);
+
+    // --- Scytale ---
+    let encoded_message = scytale_encrypt(text.clone(), 3).unwrap();
+    let decoded_message = scytale_decrypt(encoded_message.clone()).unwrap();
+    println!("{}", decoded_message)
 
     // --- Caesar ---
     // let encoded = caesar_encrypt(cipher, 1).unwrap();
