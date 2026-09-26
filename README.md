@@ -19,7 +19,7 @@ A collection of encryption and decryption algorithm implementations, following t
   * One of the earliest known examples of deliberately unusual writing.
   * Not primarily intended for cryptographic security.
 
-* [ ] **~500 BC — Scytale**
+* [x] **~500 BC — Scytale**
 
   * Sparta
   * Transposition cipher.
@@ -96,22 +96,5 @@ A collection of encryption and decryption algorithm implementations, following t
 
   * Public-key cryptosystem.
   * Supports encryption and decryption based on modular exponentiation and the difficulty of integer factorization.
-
-## Implementation Status
-
-| Algorithm    | Status |
-| ------------ | :----: |
-| Scytale      |   [ ]  |
-| Caesar       |   [x]  |
-| Alberti      |   [ ]  |
-| Bellaso      |   [ ]  |
-| Vigenère     |   [x]  |
-| Affine       |   [x]  |
-| One-time pad |   [ ]  |
-| Enigma       |   [ ]  |
-| DES          |   [ ]  |
-| RSA          |   [ ]  |
-
-> **Legend:** `[x]` implemented · `[ ]` planned
 
 Used llms, for README, and function naming, double checking algorithms logic.
