@@ -1,18 +1,9 @@
-use crate::util::{ALPHABET, count_chars};
+mod analysis;
+mod cipher;
 mod util;
-pub use util::is_bijective_mod26;
-mod decryption;
-mod encryption;
-pub use decryption::{
-    caesar_brute_force_decryption, vigenere_decrpytion, vigenere_decrpytion_brute_force,
-};
-pub use encryption::{affine_cipher_encryption, ceaser_encryption, vigenere_cipher_encryption};
 
-// IC range 0.038 (random) to 0.067 (English). Close to 0.067 = valid English or mono-alphabetic cipher.
-pub fn index_of_coincidence(cipher: &str) -> f64 {
-    let counts = count_chars(cipher);
-    let n: u64 = counts.values().map(|&c| c as u64).sum();
-    let numerator: u64 = counts.values().map(|&c| (c as u64) * (c as u64 - 1)).sum();
-    let n = n as f64;
-    numerator as f64 / (n * (n - 1.))
-}
+pub use analysis::{index_of_coincidence, is_bijective_mod26};
+pub use cipher::{
+    affine_decrypt, affine_encrypt, caesar_crack, caesar_encrypt, key_lengths,
+    possible_key_lengths, vigenere_crack, vigenere_decrypt, vigenere_encrypt,
+};

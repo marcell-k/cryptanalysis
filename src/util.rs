@@ -24,19 +24,6 @@ pub fn count_chars(cipher: &str) -> HashMap<char, u16> {
     map
 }
 
-pub fn is_bijective_mod26(f: impl Fn(usize) -> usize) -> bool {
-    let mut seen = [false; 26];
-
-    for idx in 0..26 {
-        let out = f(idx) % 26;
-        if seen[out] {
-            return false;
-        }
-        seen[out] = true;
-    }
-    true
-}
-
 pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
     if fs::exists(COMMON_FILE)? {
         let data = fs::read_to_string(COMMON_FILE)?;
@@ -50,7 +37,7 @@ pub fn load_or_build_common() -> io::Result<HashMap<char, u16>> {
     }
 }
 
-pub fn chi_square_scoring(res: &str, common: &HashMap<char, u16>) -> f64 {
+pub fn chi_square_score(res: &str, common: &HashMap<char, u16>) -> f64 {
     let map = count_chars(res);
     let res_total: f64 = map.values().sum::<u16>() as f64;
     let common_total: f64 = common.values().sum::<u16>() as f64;
