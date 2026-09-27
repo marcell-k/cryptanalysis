@@ -61,6 +61,32 @@ pub fn caesar_crack(cipher: String) -> anyhow::Result<(String, f64, usize)> {
     Ok((pairs[0].0.clone(), pairs[0].1, (26 - rotation) % 26))
 }
 
+pub fn caesar_crack_by_frequency(cipher: String) -> anyhow::Result<(String, f64, usize)> {
+    let common = load_or_build_common()?;
+    let mut best_msg = String::new();
+    let mut best_value = f64::MAX;
+    let mut best_rotation = 0;
+
+    for i in 0..26 {
+        let mut s = String::with_capacity(cipher.len());
+        for ch in cipher.chars() {
+            if !ch.is_alphabetic() {
+                s.push(ch);
+                continue;
+            }
+            let index = ALPHABET.iter().position(|c| c == &ch).unwrap();
+            s.push(ALPHABET[(index + i) % 26]);
+        }
+        let value = chi_square_score(&s, &common);
+        if value < best_value {
+            best_value = value;
+            best_rotation = i;
+            best_msg = s;
+        }
+    }
+    Ok((best_msg, best_value, (26 - best_rotation) % 26))
+}
+
 #[cfg(test)]
 mod test {
     use super::caesar_crack;
