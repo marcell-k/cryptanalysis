@@ -1,9 +1,10 @@
-use crate::util::count_chars;
+use crate::util::{ALPHABET, count_chars};
 
 // IC range 0.038 (random) to 0.067 (English).
 // Close to 0.067 = valid English or mono-alphabetic cipher.
 pub fn index_of_coincidence(cipher: &str) -> f64 {
-    let counts = count_chars(cipher);
+    let filtered: String = cipher.chars().filter(|c| ALPHABET.contains(c)).collect();
+    let counts = count_chars(&filtered);
     let n: u64 = counts.values().map(|&c| c as u64).sum();
     let numerator: u64 = counts.values().map(|&c| (c as u64) * (c as u64 - 1)).sum();
     let n = n as f64;
