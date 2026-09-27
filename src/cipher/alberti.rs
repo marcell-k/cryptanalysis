@@ -106,14 +106,21 @@ fn alberti_crack(
 
 fn chi_square_score(message: &str, common: &HashMap<char, usize>) -> f64 {
     let map = count_chars(message);
-    let msg_len = message.len() as f64;
+    let msg_len = map.values().sum::<usize>() as f64;
     let common_total = common.values().sum::<usize>() as f64;
     // add smoothing , so near-zero expected chars are  not infinitely penalized
     let smoothing = 0.5;
-    let num_symbols = OUTER_DISKS.len() as f64; // 24
+    let mut symbols: Vec<char> = OUTER_DISKS
+        .iter()
+        .chain(INNER_DISKS.iter())
+        .copied()
+        .collect();
+    symbols.sort_unstable();
+    symbols.dedup();
+    let num_symbols = symbols.len() as f64;
 
     let mut score = 0.;
-    for ch in OUTER_DISKS.iter().chain(INNER_DISKS.iter()) {
+    for ch in &symbols {
         let observed = *map.get(ch).unwrap_or(&0) as f64 / msg_len;
         let expected = (*common.get(ch).unwrap_or(&0) as f64 + smoothing)
             / (common_total + smoothing * num_symbols);
