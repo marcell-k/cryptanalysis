@@ -6,13 +6,15 @@ use crate::util::ALPHABET;
 // for each character: `(w[i] + k[i]) % 26`
 pub fn vigenere_encrypt(message: String, key: String) -> anyhow::Result<String> {
     let mut out = String::with_capacity(message.len());
-    for (i, ch) in message.chars().enumerate() {
-        let kch = key.chars().nth(i % key.len()).unwrap();
+    let mut key_pos = 0usize;
+    for ch in message.chars() {
+        let kch = key.chars().nth(key_pos % key.len()).unwrap();
         if ALPHABET.contains(&ch) {
             let idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
             let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
             let idx = (idx + key_idx) % 26;
             out.push(ALPHABET[idx]);
+            key_pos += 1;
         } else {
             out.push(ch);
         }
@@ -25,13 +27,15 @@ pub fn vigenere_encrypt(message: String, key: String) -> anyhow::Result<String> 
 pub fn vigenere_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
     let mut out = String::with_capacity(cipher.len());
 
-    for (i, ch) in cipher.chars().enumerate() {
-        let kch = key.chars().nth(i % key.len()).unwrap();
+    let mut key_pos = 0usize;
+    for ch in cipher.chars() {
+        let kch = key.chars().nth(key_pos % key.len()).unwrap();
         if ALPHABET.contains(&ch) {
             let cipher_idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
             let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
             let idx = (cipher_idx + 26 - key_idx) % 26;
             out.push(ALPHABET[idx]);
+            key_pos += 1
         } else {
             out.push(ch);
         }
@@ -130,7 +134,10 @@ pub fn vigenere_crack(cipher: String) -> anyhow::Result<String> {
     // 1. find repeating substrings - the key length can be assumed from the distance,
     // `ABC...ABC`factor here is 6, meaning the key length can be 1,2,3,6
     let lengths = key_lengths(cipher.clone());
-    let lengths: Vec<usize> = lengths.iter().filter(|&v| *v < 10).copied().collect();
+    let mut lengths: Vec<usize> = lengths.iter().filter(|&v| *v < 10).copied().collect();
+    if lengths.is_empty() {
+        lengths = (1..10).collect();
+    }
 
     const K: usize = 5;
     let mut possibilites: Vec<(String, f64)> = Vec::with_capacity(K);
