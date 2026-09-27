@@ -22,14 +22,21 @@ pub fn alberti_encrypt(
         .iter()
         .position(|ch| ch == &inital_char)
         .unwrap();
-    let chars: Vec<char> = message.chars().collect();
+    let mut pos = 0usize;
     let period_step = 2;
 
-    for (i, ch) in chars.iter().enumerate() {
-        let mut idx =
-            (OUTER_DISKS.iter().position(|c| c == ch).unwrap() + initial_shift) % OUTER_DISKS.len();
-        idx = ((i / period) * period_step + idx) % INNER_DISKS.len();
+    for ch in message.chars() {
+        let outer_idx = match OUTER_DISKS.iter().position(|c| c == &ch) {
+            Some(idx) => idx,
+            None => {
+                out.push(ch);
+                continue;
+            }
+        };
+        let mut idx = (outer_idx + initial_shift) % OUTER_DISKS.len();
+        idx = ((pos / period) * period_step + idx) % INNER_DISKS.len();
         out.push(*INNER_DISKS.get(idx).unwrap());
+        pos += 1;
     }
 
     println!("Encoded message  : {}, using alberti", out);
@@ -37,7 +44,6 @@ pub fn alberti_encrypt(
 }
 
 // NOTE: assumptions we know OUTER_DISKS, and INNER_DISKS
-// periods: `[1, cipher.len()]`, period_steps: `[0, cipher.len()]`, inital_chars: `[0, INNER_DISKS.len()]`
 pub fn alberti_decrypt(cipher: String) -> anyhow::Result<String> {
     let common = load_or_build_common().unwrap();
 
@@ -74,19 +80,25 @@ fn alberti_crack(
     period_step: usize,
 ) -> anyhow::Result<String> {
     let mut message = String::with_capacity(cipher.len());
-
-    let chars: Vec<char> = cipher.chars().collect();
+    let mut pos = 0usize;
     let initial_shift = INNER_DISKS
         .iter()
         .position(|ch| ch == &initial_char)
         .unwrap();
 
-    for (i, ch) in chars.iter().enumerate() {
-        let mut idx = INNER_DISKS.iter().position(|c| c == ch).unwrap();
-        let shift_amount = (i / period * period_step) % INNER_DISKS.len();
+    for ch in cipher.chars() {
+        let mut idx = match INNER_DISKS.iter().position(|c| c == &ch) {
+            Some(idx) => idx,
+            None => {
+                message.push(ch);
+                continue;
+            }
+        };
+        let shift_amount = (pos / period * period_step) % INNER_DISKS.len();
         idx = (idx + INNER_DISKS.len() - initial_shift) % INNER_DISKS.len();
         idx = (idx + INNER_DISKS.len() - shift_amount) % INNER_DISKS.len();
         message.push(*OUTER_DISKS.get(idx).unwrap());
+        pos += 1;
     }
 
     Ok(message)
