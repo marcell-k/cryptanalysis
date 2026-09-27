@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::cipher::caesar::caesar_crack;
+use crate::cipher::caesar::caesar_crack_by_frequency;
 use crate::util::ALPHABET;
 
 // for each character: `(w[i] + k[i]) % 26`
@@ -54,7 +54,7 @@ pub fn key_lengths(cipher: String) -> Vec<usize> {
     for i in 2..cipher.len() / 2 {
         let indexes = ngram_distances(&chars, i);
         for (k, v) in indexes {
-            out.entry(k).and_modify(|c| *c += v).or_insert(v);
+            out.entry(k).and_modify(|c| *c += v).or_insert(v * i);
         }
     }
     // eprintln!("{:?}", out);
@@ -104,7 +104,7 @@ pub fn possible_key_lengths(indexes: &[usize]) -> Vec<(usize, usize)> {
 }
 
 fn divisors(n: usize) -> Vec<usize> {
-    if n <= 2 {
+    if n < 2 {
         return Vec::with_capacity(0);
     }
     (2..=n).filter(|&i| n.is_multiple_of(i)).collect()
@@ -122,7 +122,7 @@ fn crack_single_shift(cipher: String, length: usize) -> (String, f64) {
             .map(|(_, c)| c)
             .collect();
 
-        let (_s, v, rotation) = caesar_crack(chars_seq).unwrap();
+        let (_s, v, rotation) = caesar_crack_by_frequency(chars_seq).unwrap();
 
         key.push(*ALPHABET.get(rotation).unwrap());
         value += v;
