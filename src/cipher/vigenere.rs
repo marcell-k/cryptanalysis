@@ -30,7 +30,7 @@ pub fn vigenere_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
         if ALPHABET.contains(&ch) {
             let cipher_idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
             let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
-            let idx = (cipher_idx - key_idx + 26) % 26;
+            let idx = (cipher_idx + 26 - key_idx) % 26;
             out.push(ALPHABET[idx]);
         } else {
             out.push(ch);
@@ -42,7 +42,7 @@ pub fn vigenere_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
 }
 
 pub fn key_lengths(cipher: String) -> Vec<usize> {
-    let cipher = cipher.replace(' ', "");
+    let cipher: String = cipher.chars().filter(|c| ALPHABET.contains(c)).collect();
     let chars: Vec<char> = cipher.chars().collect();
 
     let mut out = HashMap::new();
@@ -107,10 +107,11 @@ fn divisors(n: usize) -> Vec<usize> {
 }
 
 fn crack_single_shift(cipher: String, length: usize) -> (String, f64) {
+    let filtered: String = cipher.chars().filter(|c| ALPHABET.contains(c)).collect();
     let mut key = String::with_capacity(length);
     let mut value = 0.;
     for l in 0..length {
-        let chars_seq: String = cipher
+        let chars_seq: String = filtered
             .chars()
             .enumerate()
             .filter(|(i, _)| i % length == l)
