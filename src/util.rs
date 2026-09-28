@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io};
+use std::{collections::HashMap, io};
 
 pub const ALPHABET: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -10,9 +10,34 @@ pub const TRIGRAMS: [&str; 8] = ["THE", "AND", "ING", "ENT", "ION", "HER", "FOR"
 // word shapes: ABAC, ABBC, ABCCD, ABCADB, ABBCDE
 // Word shapes become especially useful when combined with frequency clues. If a common four-letter ciphertext word has the shape ABBC, and the surrounding partial plaintext suggests a verb or noun, the list of possibilities narrows quickly.
 
-const COMMON_FILE: &str = "common.txt";
-
-pub(crate) const COMMON_ENGLISH: &str = "I WOKE UP EARLY TODAY SHE LIKES COFFEE IN THE MORNING WE WENT TO THE STORE YESTERDAY HE IS WATCHING TV RIGHT NOW THEY LIVE IN A SMALL APARTMENT CAN YOU HELP ME WITH THIS I DONT UNDERSTAND THE QUESTION SHE WORKS AT A HOSPITAL WERE PLANNING A TRIP NEXT MONTH ILL CALL YOU LATER TONIGHT JACK FIXED THE BROKEN ZIPPER QUICKLY THE LAZY FOX JUMPED OVER SIX BOXES MY UNCLE OWNS A DOZEN ANTIQUE CLOCKS WE WATCHED FIREWORKS EXPLODE AT MIDNIGHT ZEBRAS GRAZED NEXT TO THE OLD JUNKYARD";
+const ENGLISH_FREQ: [(char, usize); 26] = [
+    ('A', 82),
+    ('B', 15),
+    ('C', 28),
+    ('D', 43),
+    ('E', 127),
+    ('F', 22),
+    ('G', 20),
+    ('H', 61),
+    ('I', 70),
+    ('J', 2),
+    ('K', 8),
+    ('L', 40),
+    ('M', 24),
+    ('N', 67),
+    ('O', 75),
+    ('P', 19),
+    ('Q', 1),
+    ('R', 60),
+    ('S', 63),
+    ('T', 91),
+    ('U', 28),
+    ('V', 10),
+    ('W', 24),
+    ('X', 2),
+    ('Y', 20),
+    ('Z', 1),
+];
 
 pub fn count_chars(cipher: &str) -> HashMap<char, usize> {
     let mut map = HashMap::new();
@@ -25,16 +50,7 @@ pub fn count_chars(cipher: &str) -> HashMap<char, usize> {
 }
 
 pub fn load_or_build_common() -> io::Result<HashMap<char, usize>> {
-    if fs::exists(COMMON_FILE)? {
-        let data = fs::read_to_string(COMMON_FILE)?;
-        let common: HashMap<char, usize> = serde_json::from_str(&data)?;
-        Ok(common)
-    } else {
-        let common = count_chars(COMMON_ENGLISH);
-        let serialized = serde_json::to_string(&common)?;
-        fs::write(COMMON_FILE, serialized)?;
-        Ok(common)
-    }
+    Ok(ENGLISH_FREQ.iter().copied().collect())
 }
 
 pub fn chi_square_score(res: &str, common: &HashMap<char, usize>) -> f64 {
