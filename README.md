@@ -34,12 +34,12 @@ A collection of encryption and decryption algorithm implementations, following t
   * Frequency analysis.
   * Historical development in cryptanalysis; not an encryption/decryption algorithm.
 
-* [ ] **1467 — Alberti cipher disk**
+* [x] **1467 — Alberti cipher disk**
 
   * Early polyalphabetic cipher.
   * Uses multiple substitution alphabets.
 
-* [ ] **1553 — Bellaso cipher**
+* [x] **1553 — Bellaso cipher**
 
   * Keyword-based polyalphabetic cipher.
   * Later misattributed to Vigenère.
