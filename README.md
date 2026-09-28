@@ -9,6 +9,7 @@ A collection of encryption and decryption algorithm implementations, following t
 * [Index of Coincidence — Michigan Technological University](https://pages.mtu.edu/~shene/NSF-4/Tutorial/VIG/Vig-IOC.html)
 * [Affine Cipher — Arizona State University](https://math.asu.edu/sites/g/files/litvpz216/files/affine.pdf)
 * [Scytale](https://www.dcode.fr/scytale-cipher)
+* [One-time Pad](https://www.ciphermachinesandcryptology.com/en/onetimepad.htm)
 
 ## Timeline & Implementation Progress
 
@@ -70,7 +71,7 @@ A collection of encryption and decryption algorithm implementations, following t
 
 ### Machine Cryptography
 
-* [ ] **1917 — One-time pad**
+* [x] **1917 — One-time pad**
 
   * Gilbert Vernam.
   * Encryption scheme providing perfect secrecy when the key is truly random, secret, at least as long as the message, and never reused.

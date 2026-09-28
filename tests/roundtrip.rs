@@ -97,3 +97,14 @@ fn alberti_roundtrip() {
         alberti_decrypt,
     );
 }
+#[test]
+fn otp_roundtrip() {
+    let key = "KEYWORD".to_string();
+    let key2 = key.clone();
+    assert_roundtrip(
+        "otp",
+        "MESSAGE",
+        |m| otp_encrypt(m, key),
+        |c| otp_decrypt(c, key2),
+    );
+}
