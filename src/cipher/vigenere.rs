@@ -2,19 +2,16 @@ use crate::Result;
 use std::collections::HashMap;
 
 use crate::cipher::caesar::caesar_crack_by_frequency;
-use crate::util::ALPHABET;
+use crate::util::{ALPHABET, key_indices};
 
 // for each character: `(w[i] + k[i]) % 26`
 pub fn vigenere_encrypt(message: String, key: String) -> Result<String> {
+    let key = key_indices(&key, &ALPHABET)?;
     let mut out = String::with_capacity(message.len());
     let mut key_pos = 0usize;
     for ch in message.chars() {
-        let kch = key.chars().nth(key_pos % key.len()).unwrap();
-        if ALPHABET.contains(&ch) {
-            let idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
-            let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
-            let idx = (idx + key_idx) % 26;
-            out.push(ALPHABET[idx]);
+        if let Some(idx) = ALPHABET.iter().position(|c| *c == ch) {
+            out.push(ALPHABET[(idx + key[key_pos % key.len()]) % 26]);
             key_pos += 1;
         } else {
             out.push(ch);
@@ -26,16 +23,13 @@ pub fn vigenere_encrypt(message: String, key: String) -> Result<String> {
 
 // for each character `(c[i] - k[i] + 26) % 26 == m[i]`
 pub fn vigenere_decrypt(cipher: String, key: String) -> Result<String> {
+    let key = key_indices(&key, &ALPHABET)?;
     let mut out = String::with_capacity(cipher.len());
 
     let mut key_pos = 0usize;
     for ch in cipher.chars() {
-        let kch = key.chars().nth(key_pos % key.len()).unwrap();
-        if ALPHABET.contains(&ch) {
-            let cipher_idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
-            let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
-            let idx = (cipher_idx + 26 - key_idx) % 26;
-            out.push(ALPHABET[idx]);
+        if let Some(cipher_idx) = ALPHABET.iter().position(|c| *c == ch) {
+            out.push(ALPHABET[(cipher_idx + 26 - key[key_pos % key.len()]) % 26]);
             key_pos += 1
         } else {
             out.push(ch);
@@ -111,7 +105,7 @@ fn divisors(n: usize) -> Vec<usize> {
     (2..=n).filter(|&i| n.is_multiple_of(i)).collect()
 }
 
-fn crack_single_shift(cipher: String, length: usize) -> (String, f64) {
+fn crack_single_shift(cipher: String, length: usize) -> Result<(String, f64)> {
     let filtered: String = cipher.chars().filter(|c| ALPHABET.contains(c)).collect();
     let mut key = String::with_capacity(length);
     let mut value = 0.;
@@ -123,12 +117,12 @@ fn crack_single_shift(cipher: String, length: usize) -> (String, f64) {
             .map(|(_, c)| c)
             .collect();
 
-        let (_s, v, rotation) = caesar_crack_by_frequency(chars_seq).unwrap();
+        let (_s, v, rotation) = caesar_crack_by_frequency(chars_seq)?;
 
         key.push(*ALPHABET.get(rotation).unwrap());
         value += v;
     }
-    (key, value / length as f64)
+    Ok((key, value / length as f64))
 }
 
 pub fn vigenere_crack(cipher: String) -> Result<String> {
@@ -143,11 +137,11 @@ pub fn vigenere_crack(cipher: String) -> Result<String> {
     const K: usize = 5;
     let mut possibilites: Vec<(String, f64)> = Vec::with_capacity(K);
     for length in lengths.iter().take(K) {
-        let (key, value) = crack_single_shift(cipher.clone(), *length);
+        let (key, value) = crack_single_shift(cipher.clone(), *length)?;
         possibilites.push((key, value));
     }
     possibilites.sort_by(|a, b| a.1.total_cmp(&b.1));
-    let decoded_mesage = vigenere_decrypt(cipher.clone(), possibilites[0].0.clone()).unwrap();
+    let decoded_mesage = vigenere_decrypt(cipher.clone(), possibilites[0].0.clone())?;
     println!(
         "Key: {}, value: {}",
         possibilites[0].0.clone(),

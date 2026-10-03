@@ -31,7 +31,7 @@ pub fn caesar_crack(cipher: String) -> Result<(String, f64, usize)> {
     for i in 0..26 {
         let mut s = String::new();
         for ch in cipher.chars() {
-            if !ch.is_alphabetic() {
+            if !ALPHABET.contains(&ch) {
                 s.push(ch);
                 continue;
             } else {
@@ -72,7 +72,7 @@ pub fn caesar_crack_by_frequency(cipher: String) -> Result<(String, f64, usize)>
     for i in 0..26 {
         let mut s = String::with_capacity(cipher.len());
         for ch in cipher.chars() {
-            if !ch.is_alphabetic() {
+            if !ALPHABET.contains(&ch) {
                 s.push(ch);
                 continue;
             }

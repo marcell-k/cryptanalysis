@@ -1,3 +1,4 @@
+use crate::{CipherError, Result};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
@@ -48,6 +49,21 @@ pub fn count_chars(cipher: &str) -> HashMap<char, usize> {
             .or_insert(1);
     }
     map
+}
+
+/// Validates a keyword and maps it to alphabet indices.
+pub fn key_indices(key: &str, alphabet: &[char]) -> Result<Vec<usize>> {
+    if key.is_empty() {
+        return Err(CipherError::EmptyKey);
+    }
+    key.chars()
+        .map(|c| {
+            alphabet
+                .iter()
+                .position(|a| *a == c)
+                .ok_or(CipherError::InvalidKeyChar(c))
+        })
+        .collect()
 }
 
 static COMMON: LazyLock<HashMap<char, usize>> =

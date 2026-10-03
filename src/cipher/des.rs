@@ -67,18 +67,17 @@ fn crypt_block(block: u64, keys: &[u64; 16], mode: Mode) -> u64 {
 }
 
 fn parse_key(key: &str) -> Result<u64> {
-    if key.len() == 16 && key.chars().all(|c| c.is_ascii_hexdigit()) {
-        return Ok(u64::from_str_radix(key, 16).unwrap()); // validated above
-    }
     if !key.is_ascii() {
         return Err(CipherError::DesKeyNotAscii);
     }
-    if key.len() != 8 {
-        return Err(CipherError::DesKeyLength {
-            key_length: key.len(),
-        });
+    match key.len() {
+        16 if key.chars().all(|c| c.is_ascii_hexdigit()) => {
+            Ok(u64::from_str_radix(key, 16).unwrap()) // validated above
+        }
+        16 => Err(CipherError::DesKeyNotHex),
+        8 => Ok(u64::from_be_bytes(key.as_bytes().try_into().unwrap())), // len == 8 checked
+        n => Err(CipherError::DesKeyLength { key_length: n }),
     }
-    Ok(u64::from_be_bytes(key.as_bytes().try_into().unwrap())) // len == 8 checked
 }
 
 pub fn des_encrypt(message: String, key: String) -> Result<String> {
@@ -104,11 +103,17 @@ pub fn des_encrypt(message: String, key: String) -> Result<String> {
 
 pub fn des_decrypt(cipher: String, key: String) -> Result<String> {
     let keys = subkeys(parse_key(&key)?);
-    if cipher.is_empty()
-        || !cipher.len().is_multiple_of(16)
-        || !cipher.chars().all(|c| c.is_ascii_hexdigit())
-    {
-        return Err(CipherError::DesInvalidCipher);
+    if cipher.is_empty() {
+        return Err(CipherError::InvalidCiphertext("empty ciphertext"));
+    }
+    // hex check first so the slicing below can't panic on non-ASCII
+    if !cipher.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err(CipherError::InvalidCiphertext("non-hex character"));
+    }
+    if !cipher.len().is_multiple_of(16) {
+        return Err(CipherError::InvalidCiphertext(
+            "length must be a multiple of 16 hex digits",
+        ));
     }
 
     let mut bytes = Vec::with_capacity(cipher.len() / 2);
@@ -346,7 +351,11 @@ mod test {
         for bad in ["", "zzzzzzzzzzzzzzzz", "0123"] {
             assert!(matches!(
                 des_decrypt(bad.into(), "12345678".into()),
-                Err(CipherError::DesInvalidCipher)
+                Err(CipherError::InvalidCiphertext(_))
+            ));
+            assert!(matches!(
+                des_encrypt("x".into(), "ZZZZZZZZZZZZZZZZ".into()),
+                Err(CipherError::DesKeyNotHex)
             ));
         }
     }

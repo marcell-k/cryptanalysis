@@ -5,8 +5,8 @@ use freq_analysis::*;
 fn assert_roundtrip<E1: Display, E2: Display>(
     label: &str,
     message: &str,
-    encrypt: impl FnOnce(String) -> std::result::Result<String, E1>,
-    decrypt: impl FnOnce(String) -> std::result::Result<String, E2>,
+    encrypt: impl FnOnce(String) -> Result<String, E1>,
+    decrypt: impl FnOnce(String) -> Result<String, E2>,
 ) {
     let cipher =
         encrypt(message.to_string()).unwrap_or_else(|e| panic!("[{label}] encrypt failed: {e}"));

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::Result;
-use crate::util::english_frequencies;
+use crate::util::{english_frequencies, key_indices};
 
 pub const ALPHABET: [char; 20] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'V',
@@ -10,15 +10,12 @@ pub const ALPHABET: [char; 20] = [
 
 // for each character: `(w[i] + k[i]) % 20`
 pub fn bellaso_encrypt(message: String, key: String) -> Result<String> {
+    let key = key_indices(&key, &ALPHABET)?;
     let mut out = String::with_capacity(message.len());
     let mut key_pos = 0usize;
     for ch in message.chars() {
-        let kch = key.chars().nth(key_pos % key.len()).unwrap();
-        if ALPHABET.contains(&ch) {
-            let idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
-            let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
-            let idx = (idx + key_idx) % 20;
-            out.push(ALPHABET[idx]);
+        if let Some(idx) = ALPHABET.iter().position(|c| *c == ch) {
+            out.push(ALPHABET[(idx + key[key_pos % key.len()]) % 20]);
             key_pos += 1;
         } else {
             out.push(ch);
@@ -30,22 +27,19 @@ pub fn bellaso_encrypt(message: String, key: String) -> Result<String> {
 
 // for each character `(c[i] - k[i] + 20) % 20 == m[i]`
 pub fn bellaso_decrypt(cipher: String, key: String) -> Result<String> {
+    let key = key_indices(&key, &ALPHABET)?;
     let mut out = String::with_capacity(cipher.len());
 
     let mut key_pos = 0usize;
     for ch in cipher.chars() {
-        let kch = key.chars().nth(key_pos % key.len()).unwrap();
-        if ALPHABET.contains(&ch) {
-            let cipher_idx = ALPHABET.iter().position(|c| c == &ch).unwrap();
-            let key_idx = ALPHABET.iter().position(|c| c == &kch).unwrap();
-            let idx = (cipher_idx + 20 - key_idx) % 20;
-            out.push(ALPHABET[idx]);
-            key_pos += 1
+        if let Some(cipher_idx) = ALPHABET.iter().position(|c| *c == ch) {
+            out.push(ALPHABET[(cipher_idx + 20 - key[key_pos % key.len()]) % 20]);
+            key_pos += 1;
         } else {
             out.push(ch);
         }
     }
-    println!("Decrypted message: {}, using Viginere", out);
+    println!("Decrypted message: {}, using bellaso", out);
 
     Ok(out)
 }

@@ -1,8 +1,13 @@
 use crate::Result;
+
+use crate::CipherError;
 use crate::util::{BIGRAMS, TRIGRAMS, count_ngrams};
 
 // Decryption requires to know the number N of letters by turn of the band (the size of the cylinder), or L the number of turns around the cylinder.
 pub fn scytale_encrypt(message: String, l: usize) -> Result<String> {
+    if l == 0 {
+        return Err(CipherError::ZeroParameter("scytale turns"));
+    }
     let mut out = String::with_capacity(message.len());
 
     let n = message.len().div_ceil(l);
@@ -26,7 +31,7 @@ pub fn scytale_decrypt(cipher: String) -> Result<String> {
     let mut message = String::with_capacity(cipher.len());
 
     for l in search_space {
-        let decoded_message = scytale_crack(&cipher, l).unwrap();
+        let decoded_message = scytale_crack(&cipher, l)?;
         // eprintln!("{}", decoded_message);
         let bi = count_ngrams(&decoded_message, &BIGRAMS);
         let tri = count_ngrams(&decoded_message, &TRIGRAMS);

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::util::{count_chars, english_frequencies};
 
-use crate::Result;
+use crate::{CipherError, Result};
 // Alberti disks
 pub const OUTER_DISKS: [char; 24] = [
     '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
@@ -14,11 +14,15 @@ pub const INNER_DISKS: [char; 24] = [
 ];
 
 pub fn alberti_encrypt(message: String, inital_char: char, period: usize) -> Result<String> {
+    if period == 0 {
+        return Err(CipherError::ZeroParameter("period"));
+    }
     let mut out = String::with_capacity(message.len());
     let initial_shift = INNER_DISKS
         .iter()
         .position(|ch| ch == &inital_char)
-        .unwrap();
+        .ok_or(CipherError::InvalidKeyChar(inital_char))?;
+
     let mut pos = 0usize;
     let period_step = 2;
 
@@ -54,12 +58,11 @@ pub fn alberti_decrypt(cipher: String) -> Result<String> {
     for init_char in initial_chars.iter() {
         for period in periods.iter() {
             for period_step in period_steps.iter() {
-                let decoded_message =
-                    alberti_crack(&cipher, *init_char, *period, *period_step).unwrap();
+                let decoded_message = alberti_crack(&cipher, *init_char, *period, *period_step)?;
                 let value = chi_square_score(&decoded_message, common);
                 if value < best_value {
                     best_value = value;
-                    eprintln!("{}", decoded_message);
+                    // eprintln!("{}", decoded_message);
                     best = decoded_message
                 }
             }
@@ -81,7 +84,7 @@ fn alberti_crack(
     let initial_shift = INNER_DISKS
         .iter()
         .position(|ch| ch == &initial_char)
-        .unwrap();
+        .ok_or(CipherError::InvalidKeyChar(initial_char))?;
 
     for ch in cipher.chars() {
         let mut idx = match INNER_DISKS.iter().position(|c| c == &ch) {
