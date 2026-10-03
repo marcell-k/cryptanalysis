@@ -108,3 +108,15 @@ fn otp_roundtrip() {
         |c| otp_decrypt(c, key2),
     );
 }
+
+#[test]
+fn des_roundtrip() {
+    let key = "133457799BBCDFF1".to_string();
+    let key2 = key.clone();
+    assert_roundtrip(
+        "des",
+        MESSAGE,
+        move |m| des_encrypt(m, key),
+        move |c| des_decrypt(c, key2),
+    );
+}

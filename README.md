@@ -10,6 +10,7 @@ A collection of encryption and decryption algorithm implementations, following t
 * [Affine Cipher — Arizona State University](https://math.asu.edu/sites/g/files/litvpz216/files/affine.pdf)
 * [Scytale](https://www.dcode.fr/scytale-cipher)
 * [One-time Pad](https://www.ciphermachinesandcryptology.com/en/onetimepad.htm)
+* [DES]("https://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm")
 
 ## Timeline & Implementation Progress
 
@@ -83,7 +84,7 @@ A collection of encryption and decryption algorithm implementations, following t
 
 ### Modern Cryptography
 
-* [ ] **1970s — DES**
+* [x] **1970s — DES**
 
   * Symmetric block cipher.
   * 56-bit effective key size.
