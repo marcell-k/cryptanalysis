@@ -1,10 +1,11 @@
+use crate::Result;
 use std::collections::HashMap;
 
 use crate::cipher::caesar::caesar_crack_by_frequency;
 use crate::util::ALPHABET;
 
 // for each character: `(w[i] + k[i]) % 26`
-pub fn vigenere_encrypt(message: String, key: String) -> anyhow::Result<String> {
+pub fn vigenere_encrypt(message: String, key: String) -> Result<String> {
     let mut out = String::with_capacity(message.len());
     let mut key_pos = 0usize;
     for ch in message.chars() {
@@ -24,7 +25,7 @@ pub fn vigenere_encrypt(message: String, key: String) -> anyhow::Result<String> 
 }
 
 // for each character `(c[i] - k[i] + 26) % 26 == m[i]`
-pub fn vigenere_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
+pub fn vigenere_decrypt(cipher: String, key: String) -> Result<String> {
     let mut out = String::with_capacity(cipher.len());
 
     let mut key_pos = 0usize;
@@ -130,7 +131,7 @@ fn crack_single_shift(cipher: String, length: usize) -> (String, f64) {
     (key, value / length as f64)
 }
 
-pub fn vigenere_crack(cipher: String) -> anyhow::Result<String> {
+pub fn vigenere_crack(cipher: String) -> Result<String> {
     // 1. find repeating substrings - the key length can be assumed from the distance,
     // `ABC...ABC`factor here is 6, meaning the key length can be 1,2,3,6
     let lengths = key_lengths(cipher.clone());

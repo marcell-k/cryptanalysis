@@ -1,6 +1,5 @@
-use anyhow::ensure;
-
 // TODO: ECB
+use crate::{CipherError, Result};
 
 fn permute(input: u64, in_bits: u32, table: &[u8]) -> u64 {
     let mut out = 0u64;
@@ -67,19 +66,22 @@ fn crypt_block(block: u64, keys: &[u64; 16], mode: Mode) -> u64 {
     permute(pre, 64, &IP_INV)
 }
 
-fn parse_key(key: &str) -> anyhow::Result<u64> {
+fn parse_key(key: &str) -> Result<u64> {
     if key.len() == 16 && key.chars().all(|c| c.is_ascii_hexdigit()) {
-        return Ok(u64::from_str_radix(key, 16)?);
+        return Ok(u64::from_str_radix(key, 16).unwrap()); // validated above
     }
-    ensure!(
-        key.is_ascii() && key.len() == 8,
-        "DES key must be 16 hex chars or 8 ASCII chars, got {:?}",
-        key
-    );
-    Ok(u64::from_be_bytes(key.as_bytes().try_into().unwrap()))
+    if !key.is_ascii() {
+        return Err(CipherError::DesKeyNotAscii);
+    }
+    if key.len() != 8 {
+        return Err(CipherError::DesKeyLength {
+            key_length: key.len(),
+        });
+    }
+    Ok(u64::from_be_bytes(key.as_bytes().try_into().unwrap())) // len == 8 checked
 }
 
-pub fn des_encrypt(message: String, key: String) -> anyhow::Result<String> {
+pub fn des_encrypt(message: String, key: String) -> Result<String> {
     let keys = subkeys(parse_key(&key)?);
 
     let mut bytes = message.into_bytes();
@@ -100,22 +102,29 @@ pub fn des_encrypt(message: String, key: String) -> anyhow::Result<String> {
     Ok(hex)
 }
 
-pub fn des_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
+pub fn des_decrypt(cipher: String, key: String) -> Result<String> {
     let keys = subkeys(parse_key(&key)?);
-    ensure!(
-        cipher.is_ascii() && !cipher.is_empty() && cipher.len().is_multiple_of(16),
-        "ciphertext must be hex, a non-zero multiple of 16 chars"
-    );
+    if cipher.is_empty()
+        || !cipher.len().is_multiple_of(16)
+        || !cipher.chars().all(|c| c.is_ascii_hexdigit())
+    {
+        return Err(CipherError::DesInvalidCipher);
+    }
 
     let mut bytes = Vec::with_capacity(cipher.len() / 2);
     for i in (0..cipher.len()).step_by(16) {
-        let block = u64::from_str_radix(&cipher[i..i + 16], 16)?;
-        // println!("{}", bin_groups(block, 64, 8));
+        let block = u64::from_str_radix(&cipher[i..i + 16], 16).unwrap(); // validated above
         bytes.extend(crypt_block(block, &keys, Mode::Decrypt).to_be_bytes());
     }
 
-    let pad_len = *bytes.last().unwrap() as usize;
-    ensure!((1..=8).contains(&pad_len), "invalid padding (wrong key?)");
+    let pad_len = *bytes.last().unwrap() as usize; // non-empty guaranteed
+    if !(1..=8).contains(&pad_len)
+        || !bytes[bytes.len() - pad_len..]
+            .iter()
+            .all(|&b| b as usize == pad_len)
+    {
+        return Err(CipherError::InvalidPadding);
+    }
     bytes.truncate(bytes.len() - pad_len);
 
     let message = String::from_utf8(bytes)?;
@@ -212,7 +221,6 @@ const SBOX: [[u8; 64]; 8] = [
     ],
 ];
 
-#[cfg(test)]
 fn bin_groups(x: u64, bits: usize, group: usize) -> String {
     let s = format!("{:0width$b}", x, width = bits);
     s.as_bytes()
@@ -319,6 +327,27 @@ mod test {
     #[test]
     fn test_wrong_key_fails() {
         let c = des_encrypt("secret message".into(), "133457799BBCDFF1".into()).unwrap();
-        assert!(des_decrypt(c, "0E329232EA6D0D73".into()).is_err());
+        let err = des_decrypt(c, "0E329232EA6D0D73".into()).unwrap_err();
+        assert!(matches!(
+            err,
+            CipherError::InvalidPadding | CipherError::Utf8(_)
+        ));
+    }
+    #[test]
+    fn test_invalid_inputs() {
+        assert!(matches!(
+            des_encrypt("x".into(), "short".into()),
+            Err(CipherError::DesKeyLength { key_length: 5 })
+        ));
+        assert!(matches!(
+            des_encrypt("x".into(), "ééé".into()),
+            Err(CipherError::DesKeyNotAscii)
+        ));
+        for bad in ["", "zzzzzzzzzzzzzzzz", "0123"] {
+            assert!(matches!(
+                des_decrypt(bad.into(), "12345678".into()),
+                Err(CipherError::DesInvalidCipher)
+            ));
+        }
     }
 }

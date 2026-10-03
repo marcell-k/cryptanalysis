@@ -1,9 +1,10 @@
+use crate::Result;
 use std::collections::BinaryHeap;
 
-use crate::util::{ALPHABET, chi_square_score, load_or_build_common};
+use crate::util::{ALPHABET, chi_square_score, english_frequencies};
 
 // y ≡ αx + β (mod 26)
-pub fn affine_encrypt(message: String, a: usize, b: usize) -> anyhow::Result<String> {
+pub fn affine_encrypt(message: String, a: usize, b: usize) -> Result<String> {
     let mut out = String::with_capacity(message.len());
 
     for ch in message.chars() {
@@ -45,8 +46,8 @@ impl Ord for Res {
     }
 }
 
-pub fn affine_decrypt(cipher: String) -> anyhow::Result<String> {
-    let common = load_or_build_common().unwrap();
+pub fn affine_decrypt(cipher: String) -> Result<String> {
+    let common = english_frequencies();
 
     // `(decrypted message, key, value)`
     // MinHeap
@@ -71,7 +72,7 @@ pub fn affine_decrypt(cipher: String) -> anyhow::Result<String> {
             }
         }
 
-        let likelihood = chi_square_score(&decrypted_message, &common);
+        let likelihood = chi_square_score(&decrypted_message, common);
         results.push(Res(decrypted_message, (a, b), likelihood));
         if results.len() > 5 {
             results.pop();

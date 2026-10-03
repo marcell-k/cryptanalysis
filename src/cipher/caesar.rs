@@ -1,8 +1,10 @@
+use crate::Result;
+
 use crate::util::{
-    ALPHABET, BIGRAMS, TRIGRAMS, chi_square_score, count_ngrams, load_or_build_common,
+    ALPHABET, BIGRAMS, TRIGRAMS, chi_square_score, count_ngrams, english_frequencies,
 };
 
-pub fn caesar_encrypt(message: String, key: usize) -> anyhow::Result<String> {
+pub fn caesar_encrypt(message: String, key: usize) -> Result<String> {
     let mut out = String::with_capacity(message.len());
 
     for ch in message.chars() {
@@ -18,8 +20,8 @@ pub fn caesar_encrypt(message: String, key: usize) -> anyhow::Result<String> {
     Ok(out)
 }
 
-pub fn caesar_crack(cipher: String) -> anyhow::Result<(String, f64, usize)> {
-    let common = load_or_build_common()?;
+pub fn caesar_crack(cipher: String) -> Result<(String, f64, usize)> {
+    let common = english_frequencies();
 
     let mut out: Vec<String> = Vec::with_capacity(26);
     let mut score: Vec<f64> = Vec::with_capacity(26);
@@ -41,7 +43,7 @@ pub fn caesar_crack(cipher: String) -> anyhow::Result<(String, f64, usize)> {
         }
         out.push(s.clone());
 
-        let chi = chi_square_score(&s, &common);
+        let chi = chi_square_score(&s, common);
         let bi = count_ngrams(&s, &BIGRAMS);
         let tri = count_ngrams(&s, &TRIGRAMS);
         // 10. and 15. arbitrary magic numbers, need to optimize those
@@ -61,8 +63,8 @@ pub fn caesar_crack(cipher: String) -> anyhow::Result<(String, f64, usize)> {
     Ok((pairs[0].0.clone(), pairs[0].1, (26 - rotation) % 26))
 }
 
-pub fn caesar_crack_by_frequency(cipher: String) -> anyhow::Result<(String, f64, usize)> {
-    let common = load_or_build_common()?;
+pub fn caesar_crack_by_frequency(cipher: String) -> Result<(String, f64, usize)> {
+    let common = english_frequencies();
     let mut best_msg = String::new();
     let mut best_value = f64::MAX;
     let mut best_rotation = 0;
@@ -77,7 +79,7 @@ pub fn caesar_crack_by_frequency(cipher: String) -> anyhow::Result<(String, f64,
             let index = ALPHABET.iter().position(|c| c == &ch).unwrap();
             s.push(ALPHABET[(index + i) % 26]);
         }
-        let value = chi_square_score(&s, &common);
+        let value = chi_square_score(&s, common);
         if value < best_value {
             best_value = value;
             best_rotation = i;

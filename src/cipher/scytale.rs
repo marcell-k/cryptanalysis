@@ -1,7 +1,8 @@
+use crate::Result;
 use crate::util::{BIGRAMS, TRIGRAMS, count_ngrams};
 
 // Decryption requires to know the number N of letters by turn of the band (the size of the cylinder), or L the number of turns around the cylinder.
-pub fn scytale_encrypt(message: String, l: usize) -> anyhow::Result<String> {
+pub fn scytale_encrypt(message: String, l: usize) -> Result<String> {
     let mut out = String::with_capacity(message.len());
 
     let n = message.len().div_ceil(l);
@@ -19,7 +20,7 @@ pub fn scytale_encrypt(message: String, l: usize) -> anyhow::Result<String> {
 
 // TODO: find efficient way to calc `search_space`
 // TODO: improve score calcualtion
-pub fn scytale_decrypt(cipher: String) -> anyhow::Result<String> {
+pub fn scytale_decrypt(cipher: String) -> Result<String> {
     let search_space: Vec<usize> = (1..=cipher.len()).collect();
     let mut best_score = f64::MIN;
     let mut message = String::with_capacity(cipher.len());
@@ -38,7 +39,7 @@ pub fn scytale_decrypt(cipher: String) -> anyhow::Result<String> {
     Ok(message)
 }
 
-fn scytale_crack(cipher: &str, l: usize) -> anyhow::Result<String> {
+fn scytale_crack(cipher: &str, l: usize) -> Result<String> {
     let chars: Vec<char> = cipher.chars().collect();
     let n = chars.len() / l;
     let mut out = String::with_capacity(chars.len());

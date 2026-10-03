@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use crate::util::{count_chars, load_or_build_common};
+use crate::util::{count_chars, english_frequencies};
 
+use crate::Result;
 // Alberti disks
 pub const OUTER_DISKS: [char; 24] = [
     '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
@@ -12,11 +13,7 @@ pub const INNER_DISKS: [char; 24] = [
     'V', 'X', 'Y', 'Z', '&',
 ];
 
-pub fn alberti_encrypt(
-    message: String,
-    inital_char: char,
-    period: usize,
-) -> anyhow::Result<String> {
+pub fn alberti_encrypt(message: String, inital_char: char, period: usize) -> Result<String> {
     let mut out = String::with_capacity(message.len());
     let initial_shift = INNER_DISKS
         .iter()
@@ -44,8 +41,8 @@ pub fn alberti_encrypt(
 }
 
 // NOTE: assumptions we know OUTER_DISKS, and INNER_DISKS
-pub fn alberti_decrypt(cipher: String) -> anyhow::Result<String> {
-    let common = load_or_build_common().unwrap();
+pub fn alberti_decrypt(cipher: String) -> Result<String> {
+    let common = english_frequencies();
 
     let periods: Vec<usize> = (1..=cipher.len()).collect();
     let period_steps: Vec<usize> = (1..=INNER_DISKS.len()).collect();
@@ -59,7 +56,7 @@ pub fn alberti_decrypt(cipher: String) -> anyhow::Result<String> {
             for period_step in period_steps.iter() {
                 let decoded_message =
                     alberti_crack(&cipher, *init_char, *period, *period_step).unwrap();
-                let value = chi_square_score(&decoded_message, &common);
+                let value = chi_square_score(&decoded_message, common);
                 if value < best_value {
                     best_value = value;
                     eprintln!("{}", decoded_message);
@@ -78,7 +75,7 @@ fn alberti_crack(
     initial_char: char,
     period: usize,
     period_step: usize,
-) -> anyhow::Result<String> {
+) -> Result<String> {
     let mut message = String::with_capacity(cipher.len());
     let mut pos = 0usize;
     let initial_shift = INNER_DISKS

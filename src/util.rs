@@ -1,4 +1,5 @@
-use std::{collections::HashMap, io};
+use std::collections::HashMap;
+use std::sync::LazyLock;
 
 pub const ALPHABET: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -49,8 +50,11 @@ pub fn count_chars(cipher: &str) -> HashMap<char, usize> {
     map
 }
 
-pub fn load_or_build_common() -> io::Result<HashMap<char, usize>> {
-    Ok(ENGLISH_FREQ.iter().copied().collect())
+static COMMON: LazyLock<HashMap<char, usize>> =
+    LazyLock::new(|| ENGLISH_FREQ.iter().copied().collect());
+
+pub fn english_frequencies() -> &'static HashMap<char, usize> {
+    &COMMON
 }
 
 pub fn chi_square_score(res: &str, common: &HashMap<char, usize>) -> f64 {

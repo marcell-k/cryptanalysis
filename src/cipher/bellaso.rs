@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::util::load_or_build_common;
+use crate::Result;
+use crate::util::english_frequencies;
 
 pub const ALPHABET: [char; 20] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'V',
@@ -8,7 +9,7 @@ pub const ALPHABET: [char; 20] = [
 ];
 
 // for each character: `(w[i] + k[i]) % 20`
-pub fn bellaso_encrypt(message: String, key: String) -> anyhow::Result<String> {
+pub fn bellaso_encrypt(message: String, key: String) -> Result<String> {
     let mut out = String::with_capacity(message.len());
     let mut key_pos = 0usize;
     for ch in message.chars() {
@@ -28,7 +29,7 @@ pub fn bellaso_encrypt(message: String, key: String) -> anyhow::Result<String> {
 }
 
 // for each character `(c[i] - k[i] + 20) % 20 == m[i]`
-pub fn bellaso_decrypt(cipher: String, key: String) -> anyhow::Result<String> {
+pub fn bellaso_decrypt(cipher: String, key: String) -> Result<String> {
     let mut out = String::with_capacity(cipher.len());
 
     let mut key_pos = 0usize;
@@ -161,11 +162,11 @@ fn crack_single_shift(cipher: &str, length: usize, common: &HashMap<char, usize>
     (key, value / length as f64)
 }
 
-pub fn bellaso_crack(cipher: String) -> anyhow::Result<String> {
+pub fn bellaso_crack(cipher: String) -> Result<String> {
     // 1. find repeating substrings - the key length can be assumed from the distance,
     // `ABC...ABC`factor here is 6, meaning the key length can be 1,2,3,6
     let lengths = key_lengths(cipher.clone());
-    let common = load_or_build_common()?;
+    let common = english_frequencies();
     let mut lengths: Vec<usize> = lengths.iter().filter(|&v| *v < 10).copied().collect();
     if lengths.is_empty() {
         lengths = (1..10).collect();
@@ -174,7 +175,7 @@ pub fn bellaso_crack(cipher: String) -> anyhow::Result<String> {
     const K: usize = 5;
     let mut possibilites: Vec<(String, f64)> = Vec::with_capacity(K);
     for length in lengths.iter().take(K) {
-        let (key, value) = crack_single_shift(&cipher, *length, &common);
+        let (key, value) = crack_single_shift(&cipher, *length, common);
         possibilites.push((key, value));
     }
     possibilites.sort_by(|a, b| a.1.total_cmp(&b.1));
