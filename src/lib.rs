@@ -1,9 +1,12 @@
 mod analysis;
+mod bigint;
 mod cipher;
 mod error;
+mod sha256;
 mod util;
 
 pub use analysis::{index_of_coincidence, is_bijective_mod26};
+pub use cipher::diffie_hellman::Party;
 pub use cipher::{
     affine_decrypt, affine_encrypt, alberti_decrypt, alberti_encrypt, bellaso_crack,
     bellaso_decrypt, bellaso_encrypt, caesar_crack, caesar_encrypt, des_decrypt, des_encrypt,

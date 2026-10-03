@@ -10,6 +10,8 @@ A collection of encryption and decryption algorithm implementations, following t
 * [Scytale](https://www.dcode.fr/scytale-cipher)
 * [One-time Pad](https://www.ciphermachinesandcryptology.com/en/onetimepad.htm)
 * [DES](https://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm)
+* [Diffie-Hellman](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+* [Big prime](https://www.rfc-editor.org/info/rfc3526/#section-3)
 
 ## Timeline & Implementation Progress
 
@@ -88,7 +90,7 @@ A collection of encryption and decryption algorithm implementations, following t
   * Symmetric block cipher.
   * 56-bit effective key size.
 
-* [ ] **1976 — Diffie–Hellman**
+* [x] **1976 — Diffie–Hellman**
 
   * Public-key key exchange.
   * Establishes a shared secret over an insecure channel.
