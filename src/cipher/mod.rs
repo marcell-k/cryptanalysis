@@ -3,6 +3,7 @@ pub mod alberti;
 pub mod bellaso;
 pub mod caesar;
 pub mod des;
+pub mod diffie_hellman;
 pub mod otp;
 pub mod scytale;
 pub mod tdes;
