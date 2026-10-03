@@ -9,8 +9,8 @@
 use freq_analysis::{
     Result, affine_decrypt, affine_encrypt, alberti_decrypt, alberti_encrypt, caesar_crack,
     caesar_encrypt, des_decrypt, des_encrypt, index_of_coincidence, is_bijective_mod26,
-    otp_decrypt, otp_encrypt, scytale_decrypt, scytale_encrypt, vigenere_crack, vigenere_decrypt,
-    vigenere_encrypt,
+    otp_decrypt, otp_encrypt, scytale_decrypt, scytale_encrypt, tdes_decrypt, tdes_encrypt,
+    vigenere_crack, vigenere_decrypt, vigenere_encrypt,
 };
 
 fn main() -> Result<()> {
@@ -58,9 +58,15 @@ fn main() -> Result<()> {
     // let encoded_message = otp_encrypt(text.clone(), key.clone())?;
     // let decoded_message = otp_decrypt(encoded_message, key.clone())?;
 
-    // --- DES ---
-    let key = String::from("133457799BBCDFF1");
-    let encoded_message = des_encrypt(text.clone(), key.clone())?;
-    let decoded_message = des_decrypt(encoded_message, key.clone())?;
+    // // --- DES ---
+    // let key = String::from("133457799BBCDFF1");
+    // let encoded_message = des_encrypt(text.clone(), key.clone())?;
+    // let decoded_message = des_decrypt(encoded_message, key.clone())?;
+
+    // --- Triple-DES ---
+    let key = String::from("133457799BBCDFF10E329232EA6D0D73FEDCBA9876543210");
+    let encoded_message = tdes_encrypt(text.clone(), key.clone())?;
+    let decoded_message = tdes_decrypt(encoded_message, key.clone())?;
+    assert_eq!(text, decoded_message);
     Ok(())
 }

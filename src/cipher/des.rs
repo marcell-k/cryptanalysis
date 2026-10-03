@@ -15,7 +15,7 @@ fn rot28(x: u32, n: u32) -> u32 {
 }
 
 /// Step 1: 64-bit key -> sixteen 48-bit subkeys (stored in the low 48 bits of a u64).
-fn subkeys(key: u64) -> [u64; 16] {
+pub(crate) fn subkeys(key: u64) -> [u64; 16] {
     let k_plus = permute(key, 64, &PC_1);
     let mut c = (k_plus >> 28) as u32 & 0x0FFF_FFFF;
     let mut d = k_plus as u32 & 0x0FFF_FFFF;
@@ -44,12 +44,12 @@ fn feistel(r: u32, k: u64) -> u32 {
     permute(out as u64, 32, &P) as u32
 }
 
-enum Mode {
+pub(crate) enum Mode {
     Encrypt,
     Decrypt,
 }
 /// Encrypt (or decrypt) one 64-bit block.
-fn crypt_block(block: u64, keys: &[u64; 16], mode: Mode) -> u64 {
+pub(crate) fn crypt_block(block: u64, keys: &[u64; 16], mode: Mode) -> u64 {
     let ip = permute(block, 64, &IP);
     let mut l = (ip >> 32) as u32;
     let mut r = ip as u32;
@@ -66,7 +66,7 @@ fn crypt_block(block: u64, keys: &[u64; 16], mode: Mode) -> u64 {
     permute(pre, 64, &IP_INV)
 }
 
-fn parse_key(key: &str) -> Result<u64> {
+pub(crate) fn parse_key(key: &str) -> Result<u64> {
     if !key.is_ascii() {
         return Err(CipherError::DesKeyNotAscii);
     }

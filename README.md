@@ -1,4 +1,3 @@
-
 # Cryptography
 
 A collection of encryption and decryption algorithm implementations, following the historical development of classical and modern cryptography.
@@ -10,7 +9,7 @@ A collection of encryption and decryption algorithm implementations, following t
 * [Affine Cipher — Arizona State University](https://math.asu.edu/sites/g/files/litvpz216/files/affine.pdf)
 * [Scytale](https://www.dcode.fr/scytale-cipher)
 * [One-time Pad](https://www.ciphermachinesandcryptology.com/en/onetimepad.htm)
-* [DES]("https://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm")
+* [DES](https://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm)
 
 ## Timeline & Implementation Progress
 
@@ -99,5 +98,25 @@ A collection of encryption and decryption algorithm implementations, following t
 
   * Public-key cryptosystem.
   * Supports encryption and decryption based on modular exponentiation and the difficulty of integer factorization.
+
+* [ ] **1985 — Elliptic Curve Cryptography (ECC)**
+
+  * Neal Koblitz and Victor Miller (independently).
+  * Public-key cryptography based on the algebraic structure of elliptic curves over finite fields.
+  * Offers security comparable to RSA with much smaller keys.
+
+* [x] **1998 — Triple DES (3DES / TDEA)**
+
+  * Symmetric block cipher.
+  * Applies DES three times per block in encrypt-decrypt-encrypt (EDE) order.
+  * Supports two-key and three-key variants (up to 168-bit key material, ~112-bit effective security).
+  * Deprecated by NIST in favor of AES.
+
+* [ ] **2008 — ChaCha20**
+
+  * Daniel J. Bernstein.
+  * Symmetric stream cipher, a refinement of Salsa20.
+  * 256-bit key, built from add-rotate-XOR (ARX) operations, with no lookup tables and fast software performance.
+  * Standardized in RFC 8439 (usually paired with Poly1305 as ChaCha20-Poly1305).
 
 Used llms, for README, and function naming, double checking algorithms logic.
