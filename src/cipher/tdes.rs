@@ -1,31 +1,8 @@
-// src/cipher/tdes.rs
-//
-// Triple DES (3DES / TDEA) in EDE mode, ECB with PKCS#7 padding, built on des.rs.
-//
-// Required changes elsewhere:
-//
-// 1. In des.rs, widen visibility of the items reused here:
-//        pub(super) fn subkeys(...)
-//        pub(super) enum Mode { ... }
-//        pub(super) fn crypt_block(...)
-//        pub(super) fn parse_key(...)
-//
-// 2. In cipher/mod.rs:
-//        pub mod tdes;
-//        pub use tdes::{tdes_decrypt, tdes_encrypt};
-//
-// 3. In lib.rs, add `tdes_decrypt, tdes_encrypt` to the `pub use cipher::{...}` list.
-//
-// Key formats accepted:
-//   * 48 hex digits    -> three independent keys K1 || K2 || K3
-//   * 32 hex digits    -> two-key variant (K3 = K1)
-//   * 24 ASCII bytes   -> three independent keys of 8 bytes each
-//
-// Encrypt: C = E_K3( D_K2( E_K1(P) ) )
-// Decrypt: P = D_K1( E_K2( D_K3(C) ) )
-
 use super::des::{Mode, crypt_block, parse_key, subkeys};
-use crate::{CipherError, Result};
+use crate::{
+    CipherError, Result,
+    cipher::des::{pkcs7_pad, pkcs7_unpad},
+};
 
 type Schedules = [[u64; 16]; 3];
 
@@ -62,9 +39,7 @@ fn tdes_decrypt_block(block: u64, ks: &Schedules) -> u64 {
 pub fn tdes_encrypt(message: String, key: String) -> Result<String> {
     let ks = parse_tdes_key(&key)?;
 
-    let mut bytes = message.into_bytes();
-    let pad_len = 8 - (bytes.len() % 8);
-    bytes.extend(std::iter::repeat_n(pad_len as u8, pad_len));
+    let bytes = pkcs7_pad(message.into_bytes());
 
     let hex: String = bytes
         .chunks(8)
@@ -99,15 +74,7 @@ pub fn tdes_decrypt(cipher: String, key: String) -> Result<String> {
         bytes.extend(tdes_decrypt_block(block, &ks).to_be_bytes());
     }
 
-    let pad_len = *bytes.last().unwrap() as usize; // non-empty guaranteed
-    if !(1..=8).contains(&pad_len)
-        || !bytes[bytes.len() - pad_len..]
-            .iter()
-            .all(|&b| b as usize == pad_len)
-    {
-        return Err(CipherError::InvalidPadding);
-    }
-    bytes.truncate(bytes.len() - pad_len);
+    let bytes = pkcs7_unpad(bytes)?;
 
     let message = String::from_utf8(bytes)?;
     println!("Decrypted message: {}, using 3des", message);

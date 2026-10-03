@@ -1,6 +1,31 @@
 // TODO: ECB
 use crate::{CipherError, Result};
 
+/// PKCS#7: append `n` bytes of value `n`, where n = 8 - (len % 8), so n is in 1..=8.
+/// A full block of padding is added when the input is already a multiple of 8.
+pub(super) fn pkcs7_pad(mut bytes: Vec<u8>) -> Vec<u8> {
+    let pad_len = 8 - (bytes.len() % 8);
+    bytes.extend(std::iter::repeat_n(pad_len as u8, pad_len));
+    bytes
+}
+
+pub(super) fn pkcs7_unpad(mut bytes: Vec<u8>) -> Result<Vec<u8>> {
+    let pad_len = match bytes.last() {
+        Some(&b) => b as usize,
+        None => return Err(CipherError::InvalidPadding),
+    };
+    if !(1..=8).contains(&pad_len)
+        || pad_len > bytes.len()
+        || !bytes[bytes.len() - pad_len..]
+            .iter()
+            .all(|&b| b as usize == pad_len)
+    {
+        return Err(CipherError::InvalidPadding);
+    }
+    bytes.truncate(bytes.len() - pad_len);
+    Ok(bytes)
+}
+
 fn permute(input: u64, in_bits: u32, table: &[u8]) -> u64 {
     let mut out = 0u64;
     for &pos in table {
@@ -83,16 +108,12 @@ pub(crate) fn parse_key(key: &str) -> Result<u64> {
 pub fn des_encrypt(message: String, key: String) -> Result<String> {
     let keys = subkeys(parse_key(&key)?);
 
-    let mut bytes = message.into_bytes();
-    // TODO: Padding validation use PKCS#7
-    let pad_len = 8 - (bytes.len() % 8);
-    bytes.extend(std::iter::repeat_n(pad_len as u8, pad_len));
+    let bytes = pkcs7_pad(message.into_bytes());
 
     let hex: String = bytes
         .chunks(8)
         .map(|chunk| {
             let block = u64::from_be_bytes(chunk.try_into().unwrap());
-
             format!("{:016X}", crypt_block(block, &keys, Mode::Encrypt))
         })
         .collect();
@@ -122,16 +143,7 @@ pub fn des_decrypt(cipher: String, key: String) -> Result<String> {
         bytes.extend(crypt_block(block, &keys, Mode::Decrypt).to_be_bytes());
     }
 
-    let pad_len = *bytes.last().unwrap() as usize; // non-empty guaranteed
-    if !(1..=8).contains(&pad_len)
-        || !bytes[bytes.len() - pad_len..]
-            .iter()
-            .all(|&b| b as usize == pad_len)
-    {
-        return Err(CipherError::InvalidPadding);
-    }
-    bytes.truncate(bytes.len() - pad_len);
-
+    let bytes = pkcs7_unpad(bytes)?;
     let message = String::from_utf8(bytes)?;
     println!("Decrypted message: {}, using des", message);
     Ok(message)
